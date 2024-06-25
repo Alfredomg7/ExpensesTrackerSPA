@@ -33,3 +33,27 @@ export const deleteExpense = async (id) => {
         console.error('Error deleting expense:', error);
     }
 };
+
+export const updateExpense = async (id, expense) => {
+    try {
+        const response = await fetch(`${apiUrl}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(expense)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating expense:', error);
+    }
+};
+
+export const fetchExpense = async (id) => {
+    try {
+        const response = await fetch(`${apiUrl}/${id}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching expense:', error);
+    }
+};
