@@ -37,7 +37,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const expenses = await fetchExpenses();
         expensesTableBody.innerHTML = '';
 
+        let monthTotal = 0;
+        let weekTotal = 0;
+        let totalMonths = 0;
+        let totalWeeks = 0;
+        const currentDate = new Date();
         expenses.forEach(expense => {
+            const expenseDate = new Date(expense.date);
+            monthTotal += parseFloat(expense.amount);
+            totalMonths++;
+            
+            if (getWeekNumber(expenseDate) === getWeekNumber(currentDate)) {
+                weekTotal += parseFloat(expense.amount);
+                totalWeeks++;
+            }
+        
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${expense.name}</td>
@@ -67,6 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 populateEditForm(expense);
             });
         });
+
+        document.getElementById('month-total-expense').innerText = formatCurrency(monthTotal);
+        document.getElementById('monthly-avg-expense').innerText = formatCurrency(monthTotal / totalMonths);
+        document.getElementById('week-total-expense').innerText = formatCurrency(weekTotal);
+        document.getElementById('weekly-avg-expense').innerText = formatCurrency(weekTotal / totalWeeks);
     };
 
     function populateEditForm(expense) {
@@ -78,5 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
         expenseFormSubmit.textContent = 'Save Changes';
     }
 
+    function getWeekNumber(date) {
+        const onejan = new Date(date.getFullYear(), 0, 1);
+        const millisecsInDay = 86400000;
+        return Math.ceil(((date - onejan) / millisecsInDay + onejan.getDay() + 1) / 7);
+    }
+
     loadExpenses();
 });
+
