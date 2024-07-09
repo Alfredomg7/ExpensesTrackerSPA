@@ -39,17 +39,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let monthTotal = 0;
         let weekTotal = 0;
-        let totalMonths = 0;
-        let totalWeeks = 0;
+ 
         const currentDate = new Date();
+        const monthTotals = {};
+        const weekTotals = {};
+
         expenses.forEach(expense => {
             const expenseDate = new Date(expense.date);
-            monthTotal += parseFloat(expense.amount);
-            totalMonths++;
+            const monthKey = `${expenseDate.getFullYear()}-${expenseDate.getMonth()}`;
+            const weekKey = `${expenseDate.getFullYear()}-${getWeekNumber(expenseDate)}`;
+            
+            if (!monthTotals[monthKey]) {
+                monthTotals[monthKey] = 0;
+            }
+            monthTotals[monthKey] += parseFloat(expense.amount);
+
+            if (!weekTotals[weekKey]) {
+                weekTotals[weekKey] = 0;
+            }
+            weekTotals[weekKey] += parseFloat(expense.amount);
+
+            if (expenseDate.getMonth() === currentDate.getMonth()) {
+                monthTotal += parseFloat(expense.amount);
+            }
             
             if (getWeekNumber(expenseDate) === getWeekNumber(currentDate)) {
                 weekTotal += parseFloat(expense.amount);
-                totalWeeks++;
             }
         
             const row = document.createElement('tr');
@@ -66,6 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
             expensesTableBody.appendChild(row);
         });
 
+        const monthAverage = Object.keys(monthTotals).length ? (Object.values(monthTotals).reduce((a, b) => a + b, 0) / Object.keys(monthTotals).length) : 0;
+        const weekAverage = Object.keys(weekTotals).length ? (Object.values(weekTotals).reduce((a, b) => a + b, 0) / Object.keys(weekTotals).length) : 0;
+    
+        document.getElementById('month-total-expense').innerText = formatCurrency(monthTotal);
+        document.getElementById('monthly-avg-expense').innerText = formatCurrency(monthAverage);
+        document.getElementById('week-total-expense').innerText = formatCurrency(weekTotal);
+        document.getElementById('weekly-avg-expense').innerText = formatCurrency(weekAverage);
+
         document.querySelectorAll('.delete-expense').forEach(button => {
             button.addEventListener('click', async (event) => {
                 const id = event.target.dataset.id;
@@ -81,11 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 populateEditForm(expense);
             });
         });
-
-        document.getElementById('month-total-expense').innerText = formatCurrency(monthTotal);
-        document.getElementById('monthly-avg-expense').innerText = formatCurrency(monthTotal / totalMonths);
-        document.getElementById('week-total-expense').innerText = formatCurrency(weekTotal);
-        document.getElementById('weekly-avg-expense').innerText = formatCurrency(weekTotal / totalWeeks);
     };
 
     function populateEditForm(expense) {
@@ -97,10 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
         expenseFormSubmit.textContent = 'Save Changes';
     }
 
+    // create function to get week from date
     function getWeekNumber(date) {
         const onejan = new Date(date.getFullYear(), 0, 1);
-        const millisecsInDay = 86400000;
-        return Math.ceil(((date - onejan) / millisecsInDay + onejan.getDay() + 1) / 7);
+        return Math.ceil((((date - onejan) / 86400000) + onejan.getDay() + 1) / 7);
     }
 
     loadExpenses();
